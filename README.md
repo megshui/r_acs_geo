@@ -1,6 +1,8 @@
 # r_acs_geo
-A project pulling common American Community Survey tables for San Francisco geographies.
+A project pulling common ACS tables for SF geographies.
 
-This is a line from r studio.
+This is a line from R Studio.
+
+library(tidyverse)
 
 
