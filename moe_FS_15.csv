@@ -1,0 +1,7 @@
+Destination,myfield,type,formula
+Food_Sec,drive1115,Prop,(b08101_009 + b08101_017) / b08101_001 * 100
+Food_Sec,r95hhincper_1115,Ratio,(b19080_005/b19013_001)
+Food_Sec,medrent1115,Agg,(b25064_001)
+Pop,pop1115,Agg,b01003_001
+Pop,male1115,Agg,B01001_002
+Pop,female1115,Agg,B01001_026

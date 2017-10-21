@@ -23,7 +23,7 @@ api.key.install(key=mykey)
 Lets try out the package and get some small scale working prototype
 
 
-```{r}
+```{r kicking the acsr wheels}
 
 # working example from acsr.  Single aggregation
 sumacs(formula = "(b16004_004 + b16004_026 + b16004_048) / b16004_001",
@@ -150,9 +150,187 @@ combine.output("(b16004_004 + b16004_026 + b16004_048 / b16004_001)",
 
 
 ```
+Now trying using the batch method described in the email.
+We would essentially create a long csv file with varname, method, and formula and have R iterate through each row.
+
+
+```{r batch test}
+
+# bring in small example
+data <- read_csv("moe_FS_15.csv")
+
+#try on first row
+combine.output(formula = data$formula[1],  #insert value in first row of formula column, which is a text string
+       varname = data$myfield[1],
+       method = data$type[1],
+       level = level,
+       state = state,
+       county = county,
+       tract = tract,
+       one.zero = TRUE,
+       combine.names = combine.names)
+
+#can I precedurally store the results in a list to access later.
+results <- list()
+
+results[[1]] <- results
+combine.output(formula = data$formula[1],  #insert value in first row of formula column, which is a text string
+       varname = data$myfield[1],
+       method = data$type[1],
+       level = level,
+       state = state,
+       county = county,
+       tract = tract,
+       one.zero = TRUE,
+       combine.names = combine.names)
+
+# now try to loop through
+
+results <- list() #empty out list
+
+for(i in 1:nrow(data)){  # find the number of rows in the dataset. Cycle through 1 until that number substituting the number for the letter i.
+  results[[i]] <- 
+    combine.output(formula = data$formula[i],
+                   varname = data$myfield[i],
+                   method = data$type[i],
+                   level = level,
+                   state = state,
+                   county = county,
+                   tract = tract,
+                   one.zero = TRUE,
+                   combine.names = combine.names) 
+}
+
+results[[1]]
+results[[2]]
+results[[3]]
+results[[4]]
+results[[5]]
+results[[6]]
+
+```
+
+
+and the final version looks something like this
+```{r proof_of_concept}
+
+# bring crosswalk and desired table codes
+nhoodxwalk <- read_csv("https://data.sfgov.org/api/views/nq42-rde6/rows.csv?accessType=DOWNLOAD")
+data <- read_csv("moe_FS_15.csv")
+
+# selecting and renaming the fields I want.  Creating county column for use later
+nhoodxwalk <- nhoodxwalk %>% 
+  mutate(TRACTCE10 = as.numeric(TRACTCE10),
+         county = 075) %>% 
+  select(nhood = NHOOD,
+         tract = TRACTCE10,
+         county)
+
+#convert to list.  Which is the format acsr prefers
+nhoodxwalk <- 
+  nhoodxwalk %>% 
+  group_by(nhood) %>% 
+  summarise(tract = list(tract), 
+            county = list(county),
+            state = "CA",
+            level = "tract")
+
+tract <-  lapply(nhoodxwalk$tract, as.list)
+county <-  lapply(nhoodxwalk$county, as.list)
+state <- as.list(nhoodxwalk$state)
+level <- as.list(nhoodxwalk$level)
+combine.names <- nhoodxwalk$nhood
+
+# survey year
+endyear <- 2015
+
+# acsr magic!
+results <- list() #empty out list
+
+for(i in 1:nrow(data)){  # find the number of rows in the dataset. Cycle through 1 until that number substituting the number for the letter i.
+  results[[i]] <- 
+    combine.output(formula = data$formula[i],
+                   varname = data$myfield[i],
+                   method = data$type[i],
+                   level = level,
+                   state = state,
+                   county = county,
+                   tract = tract,
+                   one.zero = TRUE,
+                   combine.names = combine.names) 
+}
+```
+
 
 
 ```{r garbage}
+
+
+
+
+
+results <- list()
+
+for(i in 1:3){  # find the number of rows in the dataset. Cycle through that number substituting the number for the letter i.
+results[[i]] <- combine.output(formula = data$formula[i],
+               varname = data$myfield[i],
+               method = data$type[i],
+               level = list("tract", "tract"),  # if two aggregations need list that defines each aggregation (all 2 are at the tract level) 
+               state = list("CA", "CA"), # for each aggregation have to define all three levels: state, county, and tract
+               county = list(list(075, 075, 075, 075, 075, 075, 075, 075, 075, 075, 075),
+                             list(075, 075, 075, 075, 075, 075)),
+               tract = list(list(980600, 980900, 61200, 23103,61000,23003,23200,23001,23400,23300,23102),
+                            list(25200, 25200, 25402, 25403, 25300, 25100)),
+               one.zero = TRUE,
+               combine.names = c("CA1", "CA2")) # give them names
+
+
+}
+results[[1]] <- combine.output(formula = data$formula[1],
+               varname = data$myfield[1],
+               method = data$type[1],
+               level = list("tract", "tract"),  # if two aggregations need list that defines each aggregation (all 2 are at the tract level) 
+               state = list("CA", "CA"), # for each aggregation have to define all three levels: state, county, and tract
+               county = list(list(075, 075, 075, 075, 075, 075, 075, 075, 075, 075, 075),
+                             list(075, 075, 075, 075, 075, 075)),
+               tract = list(list(980600, 980900, 61200, 23103,61000,23003,23200,23001,23400,23300,23102),
+                            list(25200, 25200, 25402, 25403, 25300, 25100)),
+               one.zero = TRUE,
+               combine.names = c("CA1", "CA2")) # give them names
+results[[2]] <- combine.output(formula = data$formula[2],
+               varname = data$myfield[2],
+               method = data$type[2],
+               level = list("tract", "tract"),  # if two aggregations need list that defines each aggregation (all 2 are at the tract level) 
+               state = list("CA", "CA"), # for each aggregation have to define all three levels: state, county, and tract
+               county = list(list(075, 075, 075, 075, 075, 075, 075, 075, 075, 075, 075),
+                             list(075, 075, 075, 075, 075, 075)),
+               tract = list(list(980600, 980900, 61200, 23103,61000,23003,23200,23001,23400,23300,23102),
+                            list(25200, 25200, 25402, 25403, 25300, 25100)),
+               one.zero = TRUE,
+               combine.names = c("CA1", "CA2")) # give them names
+results[[3]] <- combine.output(formula = data$formula[3],
+               varname = data$myfield[3],
+               method = data$type[3],
+               level = list("tract", "tract"),  # if two aggregations need list that defines each aggregation (all 2 are at the tract level) 
+               state = list("CA", "CA"), # for each aggregation have to define all three levels: state, county, and tract
+               county = list(list(075, 075, 075, 075, 075, 075, 075, 075, 075, 075, 075),
+                             list(075, 075, 075, 075, 075, 075)),
+               tract = list(list(980600, 980900, 61200, 23103,61000,23003,23200,23001,23400,23300,23102),
+                            list(25200, 25200, 25402, 25403, 25300, 25100)),
+               one.zero = TRUE,
+               combine.names = c("CA1", "CA2")) # give them names
+
+results <- list()
+results <- 0
+
+for(i in 1:3){  # find the number of rows in the dataset. Cycle through that number substituting the number for the letter i.
+results[[i]] <- 5
+
+
+
+
+
+
 
 a <- c(1,2,3)
 a <- lapply(nhoodxwalk$tract, as.list)
