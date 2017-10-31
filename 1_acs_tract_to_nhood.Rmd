@@ -1,0 +1,85 @@
+---
+title: "ACS tracts to neighborhoods"
+output: html_notebook
+---
+
+
+ACSR is a wrapper for the acs package.
+
+https://github.com/sdaza/acsr
+http://sdaza.com/r/2016/07/06/acsr/ 
+
+"The acsr package helps extracting variables and computing statistics using the America Community Survey and Decennial US Census. It was created for the Applied Population Laboratory (APL) at the University of Wisconsin-Madison."
+
+```{r packages & apikey, message=FALSE, warning=FALSE}
+
+devtools::install_github("sdaza/acsr")   
+library(acsr)
+library(tidyverse)
+
+#use if no api key installed
+api.key.install(key=mykey)
+
+```
+
+
+
+
+```{r import & combine}
+
+# bring crosswalk and desired table codes
+nhoodxwalk <- read_csv("https://data.sfgov.org/api/views/nq42-rde6/rows.csv?accessType=DOWNLOAD")
+data <- read_csv("moe_FS_15.csv")
+
+# selecting and renaming the fields I want.  Creating county column for use later
+nhoodxwalk <- nhoodxwalk %>% 
+  mutate(TRACTCE10 = as.numeric(TRACTCE10),
+         county = 075) %>% 
+  select(nhood = NHOOD,
+         tract = TRACTCE10,
+         county)
+
+#convert to list.  Which is the format acsr prefers
+nhoodxwalk <- 
+  nhoodxwalk %>% 
+  group_by(nhood) %>% 
+  summarise(tract = list(tract), 
+            county = list(county),
+            state = "CA",
+            level = "tract")
+
+tract <-  lapply(nhoodxwalk$tract, as.list)
+county <-  lapply(nhoodxwalk$county, as.list)
+state <- as.list(nhoodxwalk$state)
+level <- as.list(nhoodxwalk$level)
+combine.names <- nhoodxwalk$nhood
+
+# survey year
+endyear <- 2015
+
+# acsr magic!
+results <- list() #empty out list
+
+for(i in 1:nrow(data)){  # find the number of rows in the dataset. Cycle through 1 until that number substituting the number for the letter i.
+  results[[i]] <- 
+    combine.output(formula = data$formula[i],
+                   varname = data$myfield[i],
+                   method = data$type[i],
+                   level = level,
+                   state = state,
+                   county = county,
+                   tract = tract,
+                   one.zero = TRUE,
+                   combine.names = combine.names) 
+}
+```
+
+
+```{r check results}
+
+results[[4]]
+results[[5]]
+results[[6]]
+
+```
+
