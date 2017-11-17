@@ -55,7 +55,8 @@ state <- list("CA", "CA", "CA")
 county <- list(list(075, 075, 075, 075, 075, 075, 075, 075, 075, 075, 075),
               list(075, 075, 075, 075, 075, 075),
               list(075,075))
-tract <-  list(list(980600, 980900, 61200, 23103,61000,23003,23200,23001,23400,23300,23102),
+tract <-  list(
+            list(980600, 980900, 61200, 23103,61000,23003,23200,23001,23400,23300,23102),
              list(25200, 25200, 25402, 25403, 25300, 25100),
              list(25402,25403))
 combine.names  <-  c("CA1", "CA2", "CA3")
@@ -86,7 +87,8 @@ Analysis Neighborhood 2010 Census Tracks - https://data.sfgov.org/d/bwbp-wk3r
 nhoodxwalk <- read_csv("https://data.sfgov.org/api/views/nq42-rde6/rows.csv?accessType=DOWNLOAD")
 
 # selecting and renaming the fields I want.  Creating county column for use later
-nhoodxwalk <- nhoodxwalk %>% 
+nhoodxwalk <- 
+  nhoodxwalk %>% 
   mutate(TRACTCE10 = as.numeric(TRACTCE10),
          county = 075) %>% 
   select(nhood = NHOOD,
@@ -94,6 +96,8 @@ nhoodxwalk <- nhoodxwalk %>%
          county)
 
 nhoodxwalk
+
+
 
 #convert to list.  Which is the format acsr prefers
 
@@ -104,6 +108,7 @@ nhoodxwalk <-
             county = list(county),
             state = "CA",
             level = "tract")
+
 
 nhoodxwalk
 
@@ -448,5 +453,90 @@ sumacs(formula = "(b16004_004 + b16004_026 + b16004_048) / b16004_001",
             tract = 950501,
             endyear = 2013,
             one.zero = TRUE)
+```
+
+```{r}
+
+sumacs(formula = "(b16004_004 + b16004_026 + b16004_048) / b16004_001",
+       varname = "mynewvar",
+       method = "prop",
+       level = "tract",
+       state = "CA",
+       data = a,
+       county = 075,
+       tract = as.list(980600, 980900, 61200, 23103,61000,23003,23200,23001,23400,23300,23102),
+       one.zero = TRUE,
+       combine = TRUE)
+
+# working example from acsr.  Single aggregation
+a <- acsdata(formula = "(b16004_004 + b16004_026 + b16004_048) / b16004_001",
+       level = "tract",
+       state = "CA",
+       county = 075,
+       tract = as.list(980600, 980900, 61200, 23103,61000,23003,23200,23001,23400,23300,23102),
+       combine = TRUE)
+
+acsdata(formula, 
+        level = "state", 
+        dataset = "acs", 
+        endyear = 2014,
+        span = 5, 
+        state = "WI",
+        county = "*", 
+        tract = "*",
+        combine = FALSE, 
+        combine.name = "aggregate", 
+        print.levels = TRUE)
+
+
+
+# test with 3
+level <- list("tract", "tract", "tract")
+state <- list("CA", "CA", "CA")
+county <- list(list(075, 075, 075, 075, 075, 075, 075, 075, 075, 075, 075),
+              list(075, 075, 075, 075, 075, 075),
+              list(075,075))
+tract <-  list(
+            list(980600, 980900, 61200, 23103,61000,23003,23200,23001,23400,23300,23102),
+             list(25200, 25200, 25402, 25403, 25300, 25100),
+             list(25402,25403))
+combine.names  <-  c("CA1", "CA2", "CA3")
+
+# working example using the 'test with 3' vars from above
+combine.output("(b16004_004 + b16004_026 + b16004_048 / b16004_001)",
+    varname = "mynewvar",
+    method = "prop",
+    level = level,
+    state = state,
+    county = county,
+    tract = tract,
+    one.zero = TRUE,
+    combine.names = combine.names)
+
+acsdata("(b16004_004 + b16004_026 + b16004_048 / b16004_001)",
+        level = level,
+        state = state,
+        county = county,
+        tract = tract,
+        combine = TRUE,
+        combine.name = combine.names)
+
+```
+
+
+
+```{r}
+acsdata("(b16004_004 + b16004_026 + b16004_048 / b16004_001)", level = "county")
+acsdata(c("b16004_004", "b16004_026"), level = "county")
+
+
+acsdata("(b16004_004 + b16004_026 + b16004_048 / b16004_001)",
+  level = c("block.group"), 
+  state = list("WI"),
+  county = list(1, 141),
+  tract = list(950100, 11700),
+  block.group = list(1:2, 1:2), 
+  combine = TRUE)
+
 ```
 

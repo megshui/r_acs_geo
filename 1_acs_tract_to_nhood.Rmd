@@ -29,7 +29,7 @@ api.key.install(key=mykey)
 
 # bring crosswalk and desired table codes
 nhoodxwalk <- read_csv("https://data.sfgov.org/api/views/nq42-rde6/rows.csv?accessType=DOWNLOAD")
-data <- read_csv("moe_FS_15.csv")
+data <- read_csv("acsr_formulas.csv")
 
 # selecting and renaming the fields I want.  Creating county column for use later
 nhoodxwalk <- nhoodxwalk %>% 
@@ -60,11 +60,14 @@ endyear <- 2015
 # acsr magic!
 results <- list() #empty out list
 
+
+
 for(i in 1:nrow(data)){  # find the number of rows in the dataset. Cycle through 1 until that number substituting the number for the letter i.
   results[[i]] <- 
     combine.output(formula = data$formula[i],
                    varname = data$myfield[i],
                    method = data$type[i],
+                   endyear = endyear,
                    level = level,
                    state = state,
                    county = county,
@@ -77,9 +80,14 @@ for(i in 1:nrow(data)){  # find the number of rows in the dataset. Cycle through
 
 ```{r check results}
 
-results[[4]]
+results[[1]]
 results[[5]]
 results[[6]]
+
+```
+
+```{r}
+
 
 ```
 

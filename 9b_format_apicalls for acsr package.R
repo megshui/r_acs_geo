@@ -38,6 +38,27 @@ data <-
   data %>% 
   separate(V1, into=c("var_name","var","var_type", "extra"))
 
+#spot fix lingisol
+data <- as_tibble(data)
+
+data <- 
+data %>%
+  mutate(var_type = if_else(var_name == "all" & V2 == "(B16001_002)", 'lang', var_type),
+         var = if_else(var_name == "all" & V2 == "(B16001_002)", 'var', var)) %>% 
+  select(-extra,
+         formula = V2)
+
+#concatenate var_type and var_name
+data <- 
+data %>% 
+  unite('myfield', c('var_type','var_name'))
+
+# add type arrange
+data <- 
+  data %>% 
+  arrange(myfield) %>% 
+  mutate(type = if_else(str_detect('/', formula), 'Prop', 'Agg'))
+         
 # write out as a csv to be manually massaged
 write_csv(data, 'acsr_formulas.csv')
 
